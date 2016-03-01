@@ -28,11 +28,11 @@ import io.hops.metadata.ndb.wrapper.HopsQueryBuilder;
 import io.hops.metadata.ndb.wrapper.HopsQueryDomainType;
 import io.hops.metadata.ndb.wrapper.HopsSession;
 import io.hops.metadata.yarn.TablesDef;
-import static io.hops.metadata.yarn.TablesDef.ResourceRequestOfContainerIdTableDef.NAME;
-import static io.hops.metadata.yarn.TablesDef.ResourceRequestOfContainerIdTableDef.RESOURCEREQUESTSTATE;
-import static io.hops.metadata.yarn.TablesDef.ResourceRequestOfContainerIdTableDef.TABLE_NAME;
-import static io.hops.metadata.yarn.TablesDef.ResourceRequestOfContainerIdTableDef.CONTAINER_ID;
-import io.hops.metadata.yarn.dal.ResourceRequestOfContainerDataAccess;
+import static io.hops.metadata.yarn.TablesDef.ContainerResourceRequestTableDef.NAME;
+import static io.hops.metadata.yarn.TablesDef.ContainerResourceRequestTableDef.RESOURCEREQUESTSTATE;
+import static io.hops.metadata.yarn.TablesDef.ContainerResourceRequestTableDef.TABLE_NAME;
+import static io.hops.metadata.yarn.TablesDef.ContainerResourceRequestTableDef.CONTAINER_ID;
+import io.hops.metadata.yarn.dal.ContainerResourceRequestDataAccess;
 import io.hops.metadata.yarn.entity.ResourceRequest;
 import io.hops.util.CompressionUtils;
 
@@ -44,29 +44,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
 
-public class ResourceRequestOfContainerClusterJ implements
-    TablesDef.ResourceRequestOfContainerIdTableDef,
-    ResourceRequestOfContainerDataAccess<ResourceRequest> {
+public class ContainerResourceRequestClusterJ implements
+    TablesDef.ContainerResourceRequestTableDef,
+    ContainerResourceRequestDataAccess<ResourceRequest> {
 
   @PersistenceCapable(table = TABLE_NAME)
-  public interface ResourceRequestOfContainerDTO {
+  public interface ContainerResourceRequestDTO {
       
     @PrimaryKey
     @Column(name = CONTAINER_ID)
-    String getContainerID();
+    String getContainerId();
     
-    String setcontainer_id(String container_id);
+    String setContainerId(String container_id);
     
     @PrimaryKey
     @Column(name = NAME)
-    String getname();
+    String getName();
     
-    void setname(String name);
+    void setName(String name);
 
     @Column(name = RESOURCEREQUESTSTATE)
-    byte[] getresourcerequeststate();
+    byte[] getResourceRequestState();
 
-    void setresourcerequeststate(byte[] resourcerequeststate);
+    void setResourceRequestState(byte[] resourceRequestState);
   }
 
   private final ClusterjConnector connector = ClusterjConnector.getInstance();
@@ -76,11 +76,11 @@ public class ResourceRequestOfContainerClusterJ implements
   public Map<String, List<ResourceRequest>> getAll() throws StorageException {
     HopsSession session = connector.obtainSession();
     HopsQueryBuilder qb = session.getQueryBuilder();
-    HopsQueryDomainType<ResourceRequestOfContainerDTO> dobj =
-        qb.createQueryDefinition(ResourceRequestOfContainerDTO.class);
-    HopsQuery<ResourceRequestOfContainerDTO> query = session.
+    HopsQueryDomainType<ContainerResourceRequestDTO> dobj =
+        qb.createQueryDefinition(ContainerResourceRequestDTO.class);
+    HopsQuery<ContainerResourceRequestDTO> query = session.
         createQuery(dobj);
-    List<ResourceRequestOfContainerDTO> queryResults = query.
+    List<ContainerResourceRequestDTO> queryResults = query.
         getResultList();
     Map<String,List<ResourceRequest>> result = createMap(queryResults);
     session.release(queryResults);
@@ -91,7 +91,7 @@ public class ResourceRequestOfContainerClusterJ implements
   public void addAll(Collection<ResourceRequest> toAdd)
       throws StorageException {
     HopsSession session = connector.obtainSession();
-    List<ResourceRequestOfContainerDTO> toPersist = new ArrayList<ResourceRequestOfContainerDTO>();
+    List<ContainerResourceRequestDTO> toPersist = new ArrayList<ContainerResourceRequestDTO>();
     for (ResourceRequest req : toAdd) {
       toPersist.add(createPersistable(req, session));
     }
@@ -103,24 +103,24 @@ public class ResourceRequestOfContainerClusterJ implements
   public void removeAll(Collection<ResourceRequest> toRemove)
       throws StorageException {
     HopsSession session = connector.obtainSession();
-    List<ResourceRequestOfContainerDTO> toPersist = new ArrayList<ResourceRequestOfContainerDTO>();
+    List<ContainerResourceRequestDTO> toPersist = new ArrayList<ContainerResourceRequestDTO>();
     for (ResourceRequest hop : toRemove) {
       Object[] pk = new Object[2];
       pk[0] = hop.getContainerId();
       pk[1] = hop.getName();
-      toPersist.add(session.newInstance(ResourceRequestOfContainerDTO.class, pk));
+      toPersist.add(session.newInstance(ContainerResourceRequestDTO.class, pk));
     }
     session.deletePersistentAll(toPersist);
     session.release(toPersist);
   }
 
-  private ResourceRequest createHopResourceRequestOfContainer(
-      ResourceRequestOfContainerDTO resourceRequestDTO) throws StorageException {
+  private ResourceRequest createHopContainerResourceRequest(
+      ContainerResourceRequestDTO resourceRequestDTO) throws StorageException {
     try {
-      return new ResourceRequest(resourceRequestDTO.getContainerID(),
-              resourceRequestDTO.getname(),
+      return new ResourceRequest(resourceRequestDTO.getContainerId(),
+              resourceRequestDTO.getName(),
               CompressionUtils.decompress(resourceRequestDTO.
-                      getresourcerequeststate()));
+                      getResourceRequestState()));
     } catch (IOException e) {
       throw new StorageException(e);
     } catch (DataFormatException e) {
@@ -128,15 +128,15 @@ public class ResourceRequestOfContainerClusterJ implements
     }
   }
 
-  private ResourceRequestOfContainerDTO createPersistable(ResourceRequest hop,
+  private ContainerResourceRequestDTO createPersistable(ResourceRequest hop,
       HopsSession session) throws StorageException {
-    ResourceRequestOfContainerClusterJ.ResourceRequestOfContainerDTO resourceRequestDTO = session.
-        newInstance(ResourceRequestOfContainerClusterJ.ResourceRequestOfContainerDTO.class);
+    ContainerResourceRequestClusterJ.ContainerResourceRequestDTO resourceRequestDTO = session.
+        newInstance(ContainerResourceRequestClusterJ.ContainerResourceRequestDTO.class);
 
-    resourceRequestDTO.setname(hop.getName());
-    resourceRequestDTO.setcontainer_id(hop.getContainerId());
+    resourceRequestDTO.setName(hop.getName());
+    resourceRequestDTO.setContainerId(hop.getContainerId());
     try {
-      resourceRequestDTO.setresourcerequeststate(CompressionUtils.compress(hop.
+      resourceRequestDTO.setResourceRequestState(CompressionUtils.compress(hop.
           getResourcerequeststate()));
     } catch (IOException e) {
       throw new StorageException(e);
@@ -145,11 +145,11 @@ public class ResourceRequestOfContainerClusterJ implements
   }
 
   private Map<String, List<ResourceRequest>> createMap(
-      List<ResourceRequestOfContainerDTO> results) throws StorageException {
+      List<ContainerResourceRequestDTO> results) throws StorageException {
     Map<String, List<ResourceRequest>> map =
         new HashMap<String, List<ResourceRequest>>();
-    for (ResourceRequestOfContainerDTO dto : results) {
-      ResourceRequest hop = createHopResourceRequestOfContainer(dto);
+    for (ContainerResourceRequestDTO dto : results) {
+      ResourceRequest hop = createHopContainerResourceRequest(dto);
       if (map.get(hop.getContainerId()) == null) {
         map.put(hop.getContainerId(), new ArrayList<ResourceRequest>());
       }

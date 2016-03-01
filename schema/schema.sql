@@ -858,7 +858,7 @@ CREATE TABLE `yarn_resourcerequest` (
 delimiter $$
 
 CREATE TABLE `yarn_containerresourcerequest` (
-  'containerid' VARCHAR(45) NOT NULL,
+  `containerid` VARCHAR(45) NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `resourcerequeststate` VARBINARY(13500) NULL,
   PRIMARY KEY (`containerid`, `name`)
