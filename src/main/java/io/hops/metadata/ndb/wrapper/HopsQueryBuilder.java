@@ -25,19 +25,20 @@ import io.hops.exception.StorageException;
 
 public class HopsQueryBuilder {
   private final QueryBuilder queryBuilder;
+  private final HopsExceptionWrapper wrapper;
 
-  public HopsQueryBuilder(QueryBuilder queryBuilder) {
+  public HopsQueryBuilder(final HopsExceptionWrapper wrapper, final QueryBuilder queryBuilder) {
     this.queryBuilder = queryBuilder;
+    this.wrapper = wrapper;
   }
 
   public <T> HopsQueryDomainType<T> createQueryDefinition(Class<T> aClass)
       throws StorageException {
     try {
-      QueryDomainType<T> queryDomainType =
-          queryBuilder.createQueryDefinition(aClass);
-      return new HopsQueryDomainType<T>(queryDomainType);
+      QueryDomainType<T> queryDomainType = queryBuilder.createQueryDefinition(aClass);
+      return new HopsQueryDomainType<>(this.wrapper, queryDomainType);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 }

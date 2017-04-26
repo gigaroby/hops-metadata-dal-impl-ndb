@@ -24,16 +24,20 @@ import io.hops.exception.StorageException;
 
 public class HopsQueryDomainType<E> {
   private final QueryDomainType<E> queryDomainType;
+  private final HopsExceptionWrapper wrapper;
 
-  public HopsQueryDomainType(QueryDomainType<E> queryDomainType) {
+  public HopsQueryDomainType(HopsExceptionWrapper wrapper, QueryDomainType<E> queryDomainType) {
     this.queryDomainType = queryDomainType;
+    this.wrapper = wrapper;
   }
 
   public HopsPredicateOperand get(String s) throws StorageException {
     try {
-      return new HopsPredicateOperand(queryDomainType.get(s));
+      return new HopsPredicateOperand(
+          this.wrapper,
+          queryDomainType.get(s));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -41,7 +45,7 @@ public class HopsQueryDomainType<E> {
     try {
       return queryDomainType.getType();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -49,25 +53,30 @@ public class HopsQueryDomainType<E> {
       throws StorageException {
     try {
       return new HopsQueryDefinition<E>(
-          queryDomainType.where(predicate.getPredicate()));
+          this.wrapper,
+          this.queryDomainType.where(predicate.getPredicate()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicateOperand param(String s) throws StorageException {
     try {
-      return new HopsPredicateOperand(queryDomainType.param(s));
+      return new HopsPredicateOperand(
+          this.wrapper,
+          this.queryDomainType.param(s));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate not(HopsPredicate predicate) throws StorageException {
     try {
-      return new HopsPredicate(queryDomainType.not(predicate.getPredicate()));
+      return new HopsPredicate(
+          this.wrapper,
+          this.queryDomainType.not(predicate.getPredicate()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 

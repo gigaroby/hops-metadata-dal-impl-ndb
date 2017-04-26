@@ -24,16 +24,18 @@ import io.hops.exception.StorageException;
 
 public class HopsTransaction {
   private final Transaction transaction;
+  private final HopsExceptionWrapper wrapper;
 
-  public HopsTransaction(Transaction transaction) {
+  public HopsTransaction(final HopsExceptionWrapper wrapper, Transaction transaction) {
     this.transaction = transaction;
+    this.wrapper = wrapper;
   }
 
   public void begin() throws StorageException {
     try {
       transaction.begin();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -41,7 +43,7 @@ public class HopsTransaction {
     try {
       transaction.commit();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -49,7 +51,7 @@ public class HopsTransaction {
     try {
       transaction.rollback();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -57,7 +59,7 @@ public class HopsTransaction {
     try {
       return transaction.isActive();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -65,7 +67,7 @@ public class HopsTransaction {
     try {
       transaction.setRollbackOnly();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -73,7 +75,7 @@ public class HopsTransaction {
     try {
       return transaction.getRollbackOnly();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 }

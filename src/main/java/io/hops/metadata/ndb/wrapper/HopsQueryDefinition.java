@@ -24,34 +24,41 @@ import io.hops.exception.StorageException;
 
 public class HopsQueryDefinition<E> {
   private final QueryDefinition<E> queryDefinition;
+  private final HopsExceptionWrapper wrapper;
 
-  public HopsQueryDefinition(QueryDefinition<E> queryDefinition) {
+  public HopsQueryDefinition(final HopsExceptionWrapper wrapper, final QueryDefinition<E> queryDefinition) {
+    this.wrapper = wrapper;
     this.queryDefinition = queryDefinition;
   }
 
   public HopsQueryDefinition<E> where(HopsPredicate predicate)
       throws StorageException {
     try {
-      return new HopsQueryDefinition<E>(
+      return new HopsQueryDefinition<>(
+          this.wrapper,
           queryDefinition.where(predicate.getPredicate()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicateOperand param(String s) throws StorageException {
     try {
-      return new HopsPredicateOperand(queryDefinition.param(s));
+      return new HopsPredicateOperand(
+          this.wrapper,
+          queryDefinition.param(s));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate not(HopsPredicate predicate) throws StorageException {
     try {
-      return new HopsPredicate(queryDefinition.not(predicate.getPredicate()));
+      return new HopsPredicate(
+          this.wrapper,
+          queryDefinition.not(predicate.getPredicate()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 }

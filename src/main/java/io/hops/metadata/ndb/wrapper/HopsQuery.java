@@ -28,8 +28,10 @@ import java.util.Map;
 
 public class HopsQuery<E> {
   private final Query<E> query;
+  private final HopsExceptionWrapper wrapper;
 
-  public HopsQuery(Query<E> query) {
+  public HopsQuery(final HopsExceptionWrapper wrapper, final Query<E> query) {
+    this.wrapper = wrapper;
     this.query = query;
   }
 
@@ -37,7 +39,7 @@ public class HopsQuery<E> {
     try {
       query.setParameter(s, o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -45,7 +47,7 @@ public class HopsQuery<E> {
     try {
       return query.getResultList();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -53,7 +55,7 @@ public class HopsQuery<E> {
     try {
       return query.deletePersistentAll();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -61,7 +63,7 @@ public class HopsQuery<E> {
     try {
       return query.execute(o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -69,7 +71,7 @@ public class HopsQuery<E> {
     try {
       return query.execute(objects);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -77,7 +79,7 @@ public class HopsQuery<E> {
     try {
       return query.execute(map);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -85,7 +87,7 @@ public class HopsQuery<E> {
     try {
       return query.explain();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -93,7 +95,7 @@ public class HopsQuery<E> {
     try {
       query.setLimits(l, l1);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -102,7 +104,7 @@ public class HopsQuery<E> {
     try {
       query.setOrdering(ordering, strings);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 }

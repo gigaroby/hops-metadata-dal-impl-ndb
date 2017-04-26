@@ -18,40 +18,45 @@
  */
 package io.hops.metadata.ndb.wrapper;
 
-import com.mysql.clusterj.ClusterJException;
-import com.mysql.clusterj.LockMode;
-import com.mysql.clusterj.Query;
-import com.mysql.clusterj.Session;
-import com.mysql.clusterj.Transaction;
+import com.mysql.clusterj.*;
 import com.mysql.clusterj.query.QueryBuilder;
 import io.hops.exception.StorageException;
+
 import java.util.Collection;
 
 public class HopsSession {
   private final Session session;
   private LockMode lockMode = LockMode.READ_COMMITTED;
 
-  public HopsSession(Session session) {
+  private final HopsExceptionWrapper wrapper;
+
+  public HopsSession(final Session session, final HopsExceptionWrapper wrapper) {
     this.session = session;
+    this.wrapper = wrapper;
+  }
+
+  @Override
+  protected void finalize() throws Throwable {
+    super.finalize();
+    this.session.close();
   }
 
   public HopsQueryBuilder getQueryBuilder() throws StorageException {
     try {
       QueryBuilder queryBuilder = session.getQueryBuilder();
-      return new HopsQueryBuilder(queryBuilder);
+      return new HopsQueryBuilder(this.wrapper, queryBuilder);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public <T> HopsQuery<T> createQuery(HopsQueryDomainType<T> queryDefinition)
       throws StorageException {
     try {
-      Query<T> query =
-          session.createQuery(queryDefinition.getQueryDomainType());
-      return new HopsQuery<T>(query);
+      Query<T> query = session.createQuery(queryDefinition.getQueryDomainType());
+      return new HopsQuery<>(this.wrapper, query);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -59,7 +64,7 @@ public class HopsSession {
     try {
       return session.find(aClass, o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -67,7 +72,7 @@ public class HopsSession {
     try {
       return session.newInstance(aClass);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -75,7 +80,7 @@ public class HopsSession {
     try {
       return session.newInstance(aClass, o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -83,7 +88,7 @@ public class HopsSession {
     try {
       return session.makePersistent(t);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -91,7 +96,7 @@ public class HopsSession {
     try {
       return session.load(t);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -99,7 +104,7 @@ public class HopsSession {
     try {
       return session.found(o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -107,7 +112,7 @@ public class HopsSession {
     try {
       session.persist(o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -116,7 +121,7 @@ public class HopsSession {
     try {
       return session.makePersistentAll(iterable);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -125,7 +130,7 @@ public class HopsSession {
     try {
       session.deletePersistent(aClass, o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -133,7 +138,7 @@ public class HopsSession {
     try {
       session.deletePersistent(o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -141,7 +146,7 @@ public class HopsSession {
     try {
       session.remove(o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -149,7 +154,7 @@ public class HopsSession {
     try {
       return session.deletePersistentAll(aClass);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -158,7 +163,7 @@ public class HopsSession {
     try {
       session.deletePersistentAll(iterable);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -166,7 +171,7 @@ public class HopsSession {
     try {
       session.updatePersistent(o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -175,7 +180,7 @@ public class HopsSession {
     try {
       session.updatePersistentAll(iterable);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -183,7 +188,7 @@ public class HopsSession {
     try {
       return session.savePersistent(t);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -192,16 +197,16 @@ public class HopsSession {
     try {
       return session.savePersistentAll(iterable);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsTransaction currentTransaction() throws StorageException {
     try {
       Transaction transaction = session.currentTransaction();
-      return new HopsTransaction(transaction);
+      return new HopsTransaction(this.wrapper, transaction);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -209,7 +214,7 @@ public class HopsSession {
     try {
       session.close();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -217,7 +222,7 @@ public class HopsSession {
     try {
       return session.isClosed();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -225,7 +230,7 @@ public class HopsSession {
     try {
       session.flush();
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -234,7 +239,7 @@ public class HopsSession {
     try {
       session.setPartitionKey(aClass, o);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -243,7 +248,7 @@ public class HopsSession {
       session.setLockMode(lockMode);
       this.lockMode = lockMode;
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -251,7 +256,7 @@ public class HopsSession {
     try {
       session.markModified(o, s);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -259,33 +264,33 @@ public class HopsSession {
     try {
       return session.unloadSchema(aClass);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
-  
-  public <T> void release(T t)  throws StorageException {
+
+  public <T> void release(T t) throws StorageException {
     try {
-      if(t!=null){
+      if (t != null) {
         session.release(t);
       }
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
-  
-  public <T> void release(Collection<T> t)  throws StorageException {
+
+  public <T> void release(Collection<T> t) throws StorageException {
     try {
-      if(t!=null){
-        for(T dto : t)  {
+      if (t != null) {
+        for (T dto : t) {
           session.release(dto);
         }
       }
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
-  public LockMode getCurrentLockMode(){
+  public LockMode getCurrentLockMode() {
     return lockMode;
   }
 }

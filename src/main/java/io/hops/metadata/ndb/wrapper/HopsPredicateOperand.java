@@ -24,69 +24,77 @@ import io.hops.exception.StorageException;
 
 public class HopsPredicateOperand {
   private final PredicateOperand predicateOperand;
+  private final HopsExceptionWrapper wrapper;
 
-  public HopsPredicateOperand(PredicateOperand predicateOperand) {
+  HopsPredicateOperand(final HopsExceptionWrapper wrapper, final PredicateOperand predicateOperand) {
     this.predicateOperand = predicateOperand;
+    this.wrapper = wrapper;
   }
 
   public HopsPredicate equal(HopsPredicateOperand predicateOperand)
       throws StorageException {
     try {
       return new HopsPredicate(
+          this.wrapper,
           this.predicateOperand.equal(predicateOperand.getPredicateOperand()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate greaterThan(HopsPredicateOperand predicateOperand)
       throws StorageException {
     try {
-      return new HopsPredicate(this.predicateOperand
-          .greaterThan(predicateOperand.getPredicateOperand()));
+      return new HopsPredicate(
+          this.wrapper,
+          this.predicateOperand.greaterThan(predicateOperand.getPredicateOperand()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate greaterEqual(HopsPredicateOperand predicateOperand)
       throws StorageException {
     try {
-      return new HopsPredicate(this.predicateOperand
-          .greaterEqual(predicateOperand.getPredicateOperand()));
+      return new HopsPredicate(
+          this.wrapper,
+          this.predicateOperand.greaterEqual(predicateOperand.getPredicateOperand()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate lessThan(HopsPredicateOperand predicateOperand)
       throws StorageException {
     try {
-      return new HopsPredicate(this.predicateOperand
-          .lessThan(predicateOperand.getPredicateOperand()));
+      return new HopsPredicate(
+          this.wrapper,
+          this.predicateOperand.lessThan(predicateOperand.getPredicateOperand()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate lessEqual(HopsPredicateOperand predicateOperand)
       throws StorageException {
     try {
-      return new HopsPredicate(this.predicateOperand
-          .lessEqual(predicateOperand.getPredicateOperand()));
+      return new HopsPredicate(
+          this.wrapper,
+          this.predicateOperand.lessEqual(predicateOperand.getPredicateOperand()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate between(HopsPredicateOperand predicateOperand,
       HopsPredicateOperand predicateOperand1) throws StorageException {
     try {
-      return new HopsPredicate(this.predicateOperand
-          .between(predicateOperand.getPredicateOperand(),
-              predicateOperand1.getPredicateOperand()));
+      return new HopsPredicate(
+          this.wrapper,
+          this.predicateOperand.between(
+              predicateOperand.getPredicateOperand(), predicateOperand1.getPredicateOperand()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -94,9 +102,10 @@ public class HopsPredicateOperand {
       throws StorageException {
     try {
       return new HopsPredicate(
+          this.wrapper,
           this.predicateOperand.in(predicateOperand.getPredicateOperand()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
@@ -104,25 +113,30 @@ public class HopsPredicateOperand {
       throws StorageException {
     try {
       return new HopsPredicate(
+          this.wrapper,
           this.predicateOperand.like(predicateOperand.getPredicateOperand()));
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate isNull() throws StorageException {
     try {
-      return new HopsPredicate(this.predicateOperand.isNull());
+      return new HopsPredicate(
+          this.wrapper,
+          this.predicateOperand.isNull());
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate isNotNull() throws StorageException {
     try {
-      return new HopsPredicate(this.predicateOperand.isNotNull());
+      return new HopsPredicate(
+          this.wrapper,
+          this.predicateOperand.isNotNull());
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 

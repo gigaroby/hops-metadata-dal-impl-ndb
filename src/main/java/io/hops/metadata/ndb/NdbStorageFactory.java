@@ -34,6 +34,7 @@ import io.hops.metadata.ndb.dalimpl.yarn.rmstatestore.ApplicationAttemptStateClu
 import io.hops.metadata.ndb.dalimpl.yarn.rmstatestore.ApplicationStateClusterJ;
 import io.hops.metadata.ndb.dalimpl.yarn.rmstatestore.DelegationKeyClusterJ;
 import io.hops.metadata.ndb.dalimpl.yarn.rmstatestore.DelegationTokenClusterJ;
+import io.hops.metadata.ndb.multizone.PrimaryConnector;
 import io.hops.metadata.yarn.dal.*;
 import io.hops.metadata.yarn.dal.quota.*;
 import io.hops.metadata.yarn.dal.rmstatestore.ApplicationAttemptStateDataAccess;
@@ -56,7 +57,7 @@ public class NdbStorageFactory implements DalStorageFactory {
   }
 
   private Map<Class, DataAccessBuilder> dataAccessMap = new HashMap<>();
-  private MultiZoneClusterjConnector connector;
+  private PrimaryConnector connector;
 
   // we need a map with weak key references so that old connectors get GC'ed
   private final ConcurrentMap<StorageConnector, ConcurrentMap<Class, EntityDataAccess>> dataAccessCache =
@@ -66,7 +67,7 @@ public class NdbStorageFactory implements DalStorageFactory {
   public void setConfiguration(Properties conf)
       throws StorageInitializtionException {
     try {
-      connector = new MultiZoneClusterjConnector(conf);
+      connector = new PrimaryConnector(conf);
       dataAccessCache.clear();
       initDataAccessMap();
     } catch (IOException ex) {

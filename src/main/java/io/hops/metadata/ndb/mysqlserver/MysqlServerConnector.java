@@ -226,4 +226,10 @@ public class MysqlServerConnector {
             StorageConnector.class.getClassLoader().getResourceAsStream(configFile);
     return inStream;
   }
+
+  @Override
+  protected void finalize() throws Throwable {
+    this.connectionPool.close();
+    super.finalize();
+  }
 }

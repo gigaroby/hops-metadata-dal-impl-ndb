@@ -24,35 +24,37 @@ import io.hops.exception.StorageException;
 
 public class HopsPredicate {
   private final Predicate predicate;
+  private final HopsExceptionWrapper wrapper;
 
-  public HopsPredicate(Predicate predicate) {
+  public HopsPredicate(final HopsExceptionWrapper wrapper, final Predicate predicate) {
     this.predicate = predicate;
+    this.wrapper = wrapper;
   }
 
   public HopsPredicate or(HopsPredicate predicate) throws StorageException {
     try {
       Predicate predicate1 = this.predicate.or(predicate.getPredicate());
-      return new HopsPredicate(predicate1);
+      return new HopsPredicate(wrapper, predicate1);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate and(HopsPredicate predicate) throws StorageException {
     try {
       Predicate predicate1 = this.predicate.and(predicate.getPredicate());
-      return new HopsPredicate(predicate1);
+      return new HopsPredicate(wrapper, predicate1);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 
   public HopsPredicate not() throws StorageException {
     try {
       Predicate predicate1 = this.predicate.not();
-      return new HopsPredicate(predicate1);
+      return new HopsPredicate(wrapper, predicate1);
     } catch (ClusterJException e) {
-      throw HopsExceptionHelper.wrap(e);
+      throw wrapper.toStorageException(e);
     }
   }
 

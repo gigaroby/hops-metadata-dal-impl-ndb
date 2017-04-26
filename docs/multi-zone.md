@@ -17,6 +17,14 @@ Exact keys can be found in [com.mysql.clusterj.Constants](https://dev.mysql.com/
 
 Configuration for the SECONDARY cluster is performed by using the `io.hops.metadata.local.{clusterj, mysqlserver}.*` keys to define the connection to the local metadata store and the `io.hops.metadata.primary.{clusterj, mysqlserver}.*` keys to define the connection to the remote (primary) metadata store.
 
+## Reconnection
+Note that for the reconnection feature to work properly, the connection timeout should be lowered:
+```ini
+io.hops.metadata.(local|remote).clusterj.connect.timeout.mgm = 2000
+io.hops.metadata.(local|remote).clusterj.connect.retries = 0
+io.hops.metadata.(local|remote).clusterj.connect.delay = 0
+```
+
 ## Example:
 Primary configuration
 ```ini
