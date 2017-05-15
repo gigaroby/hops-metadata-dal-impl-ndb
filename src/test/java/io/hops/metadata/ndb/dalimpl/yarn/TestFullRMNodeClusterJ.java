@@ -18,7 +18,7 @@
  */
 package io.hops.metadata.ndb.dalimpl.yarn;
 
-import io.hops.MultiZoneStorageConnector;
+import io.hops.multizone.MultiZoneStorageConnector;
 import io.hops.StorageConnector;
 import io.hops.exception.StorageException;
 import io.hops.metadata.ndb.NdbStorageFactory;

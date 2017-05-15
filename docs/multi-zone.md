@@ -7,11 +7,11 @@ In this context we also refer to the **local metadata store** as the MySQL Clust
 During multi-zone operations, namenodes in the primary hdfs clusters will work as before, holding only connections to the local metadata store, while namenodes in the secondary hdfs cluster will hold both a **LOCAL** connection to the local metadata store and a **PRIMARY** connection to the primary metadata store.
 
 # Configuration
-The `ndb-config.properties` files is used to configure HopsFS for multi-zone operations.
+The `hdfs-site.xml` file is used to configure HopsFS for multi-zone operations, while `ndb-config.properties` is used to specify connection parameters to the metadata clusters.
 To enable multi-zone mode, the `io.hops.metadata.multizone` flag must be set to `"true"`.
-The `io.hops.metadata.zone` must be set to `PRIMARY` or `SECONDARY` depending on the role of the local metadata store.
+The `io.hops.metadata.zone` must be set to `primary` or `secondary` depending on the role of the local metadata store.
 
-Configuration for the PRIMARY cluster is then the same as the single-zone configuration with `io.hops.metadata.local.clusterj.*` and `io.hops.metadata.local.mysqlserver.*` keys.
+Configuration for the **primary** cluster is then the same as the single-zone configuration with `io.hops.metadata.local.clusterj.*` and `io.hops.metadata.local.mysqlserver.*` keys.
 The keys for clusterj follow the same format expected by the [clusterj driver](https://dev.mysql.com/doc/ndbapi/en/mccj-using-clusterj-start.html): `com.mysql.clusterj.*`.
 Exact keys can be found in [com.mysql.clusterj.Constants](https://dev.mysql.com/doc/ndbapi/en/mccj-clusterj-constants.html#mccj-clusterj-constants-default_property_connection_pool_size).
 
@@ -27,13 +27,26 @@ io.hops.metadata.(local|remote).clusterj.connect.delay = 0
 
 ## Example:
 Primary configuration
+
+```xml
+<!-- hdfs-site.xml -->
+<configuration>
+    <property>
+        <name>io.hops.metadata.multizone</name>
+        <value>true</value>
+    </property>
+
+    <property>
+        <name>io.hops.metadata.zone</name>
+        <value>primary</value>
+    </property>
+...
+```
+
 ```ini
-io.hops.metadata.multizone = true
-io.hops.metadata.zone = PRIMARY
+# ndb-config.ini
 io.hops.metadata.local.clusterj.connectstring=meta.cluster1.example.com
 io.hops.metadata.local.clusterj.database=hopsfs_meta
-# keep a pool of 100 connections (it is probably a good idea to set this > 1)
-io.hops.metadata.local.clusterj.connection.pool.size = 100
 
 io.hops.metadata.local.mysql.host = meta.cluster1.example.com
 io.hops.metadata.local.mysql.port = 3306
@@ -42,11 +55,24 @@ io.hops.metadata.local.mysql.password = ...
 ...
 ```
 
-Secondary configuration
-```ini
-io.hops.metadata.multizone = true
-io.hops.metadata.zone = SECONDARY
+Secondary example configuration:
 
+```xml
+<!-- hdfs-site.xml -->
+<configuration>
+    <property>
+        <name>io.hops.metadata.multizone</name>
+        <value>true</value>
+    </property>
+
+    <property>
+        <name>io.hops.metadata.zone</name>
+        <value>secondary</value>
+    </property>
+...
+```
+
+```ini
 # connection to secondary (local)
 io.hops.metadata.local.clusterj.connectstring=meta.cluster2.example.com
 io.hops.metadata.local.clusterj.database=hopsfs_meta
@@ -58,7 +84,7 @@ io.hops.metadata.local.mysql.password = ...
 
 # connection to primary
 io.hops.metadata.primary.clusterj.connectstring=meta.cluster1.example.com
-io.hops.metadata.local.clusterj.database=hopsfs_meta
+io.hops.metadata.primary.clusterj.database=hopsfs_meta
 io.hops.metadata.primary.mysql.host = meta.cluster1.example.com
 io.hops.metadata.primary.mysql.port = ...
 io.hops.metadata.primary.mysql.username = ...

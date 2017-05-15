@@ -24,6 +24,7 @@ import com.mysql.clusterj.annotation.PrimaryKey;
 import io.hops.metadata.election.TablesDef;
 import io.hops.metadata.election.entity.LeDescriptor;
 import io.hops.metadata.ndb.ClusterjConnector;
+import io.hops.metadata.ndb.NdbBoolean;
 
 import java.security.InvalidParameterException;
 
@@ -66,6 +67,22 @@ public class HdfsLeaderClusterj extends LeDescriptorClusterj implements TablesDe
     @Override
     String getHttpAddress();
 
+    @Column(name = ZONE)
+    @Override
+    String getZone();
+
+    @Override
+    void setZone(String zone);
+
+
+    @Column(name = CONNECTED_TO_PRIMARY)
+    @Override
+    byte getConnectedToPrimary();
+
+    @Override
+    void setConnectedToPrimary(byte connected);
+
+
     @Override
     void setHttpAddress(String httpAddress);
   }
@@ -75,8 +92,13 @@ public class HdfsLeaderClusterj extends LeDescriptorClusterj implements TablesDe
     if (lTable.getPartitionVal() != 0) {
       throw new InvalidParameterException("Psrtition key should be zero");
     }
-    return new LeDescriptor.HdfsLeDescriptor(lTable.getId(),
-        lTable.getCounter(), lTable.getHostname(), lTable.getHttpAddress());
+    return new LeDescriptor.HdfsLeDescriptor(
+        lTable.getId(),
+        lTable.getCounter(),
+        lTable.getHostname(),
+        lTable.getHttpAddress(),
+        lTable.getZone(),
+        NdbBoolean.convert(lTable.getConnectedToPrimary()));
   }
 
   public HdfsLeaderClusterj(ClusterjConnector connector) {

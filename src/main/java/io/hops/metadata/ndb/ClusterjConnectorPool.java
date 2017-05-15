@@ -63,7 +63,7 @@ public class ClusterjConnectorPool implements Reconnector {
     @Override
     public StorageException toStorageException(ClusterJException exc) {
       if (exc instanceof ClusterJDatastoreException && isClusterFailure((ClusterJDatastoreException) exc)) {
-        if(ClusterjConnectorPool.this.age.compareAndSet(wrapperAge, wrapperAge+1)) {
+        if (ClusterjConnectorPool.this.age.compareAndSet(wrapperAge, wrapperAge + 1)) {
           ClusterjConnectorPool.this.connected = false;
         }
       }
@@ -143,6 +143,7 @@ public class ClusterjConnectorPool implements Reconnector {
       disconnect();
     }
 
+    // we build the factory first, if this fails, leave the object in a connected=false state
     SessionFactory factory;
     try {
       factory = ClusterJHelper.getSessionFactory(clusterjProperties(conf));
@@ -156,8 +157,8 @@ public class ClusterjConnectorPool implements Reconnector {
     // reconnect
     sessionLock.writeLock().lock();
     try {
-      this.connected = true;
 
+      this.connected = true;
       // build a new wrapper with the new age.
       // the age can only be incremented once every epoch by the wrapper
       this.wrapper = new DisconnectionWrapper(this.age.get());

@@ -151,6 +151,8 @@ CREATE TABLE `hdfs_le_descriptors` (
   `counter` bigint(20) NOT NULL,
   `hostname` varchar(25) NOT NULL,
   `httpAddress` varchar(100) DEFAULT NULL,
+  `zone` varchar(10) DEFAULT NULL,
+  `connected_to_primary` tinyint DEFAULT 0,
   `partition_val` int(11) NOT NULL DEFAULT '0',
 PRIMARY KEY (`id`,`partition_val`),
 KEY `part` (`partition_val`)
@@ -164,6 +166,8 @@ CREATE TABLE `yarn_le_descriptors` (
   `counter` bigint(20) NOT NULL,
   `hostname` varchar(25) NOT NULL,
   `httpAddress` varchar(100) DEFAULT NULL,
+  `zone` varchar(10) DEFAULT NULL,
+  `connected_to_primary` tinyint DEFAULT 0,
   `partition_val` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`,`partition_val`),
   KEY `part` (`partition_val`)

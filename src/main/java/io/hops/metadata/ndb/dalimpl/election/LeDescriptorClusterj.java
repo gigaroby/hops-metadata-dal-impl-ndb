@@ -25,6 +25,7 @@ import io.hops.metadata.election.TablesDef;
 import io.hops.metadata.election.dal.LeDescriptorDataAccess;
 import io.hops.metadata.election.entity.LeDescriptor;
 import io.hops.metadata.ndb.ClusterjConnector;
+import io.hops.metadata.ndb.NdbBoolean;
 import io.hops.metadata.ndb.dalimpl.ClusterjDataAccess;
 import io.hops.metadata.ndb.wrapper.HopsQuery;
 import io.hops.metadata.ndb.wrapper.HopsQueryBuilder;
@@ -62,6 +63,14 @@ public abstract class LeDescriptorClusterj extends ClusterjDataAccess
     String getHttpAddress();
 
     void setHttpAddress(String httpAddress);
+
+    String getZone();
+
+    void setZone(String zone);
+
+    byte getConnectedToPrimary();
+
+    void setConnectedToPrimary(byte connected);
   }
 
   public LeDescriptorClusterj(ClusterjConnector connector, Class dto) {
@@ -139,5 +148,7 @@ public abstract class LeDescriptorClusterj extends ClusterjDataAccess
     lTable.setHostname(leader.getHostName());
     lTable.setHttpAddress(leader.getHttpAddress());
     lTable.setPartitionVal(leader.getPartitionVal());
+    lTable.setZone(leader.getZone());
+    lTable.setConnectedToPrimary(NdbBoolean.convert(leader.isConnectedToPrimary()));
   }
 }

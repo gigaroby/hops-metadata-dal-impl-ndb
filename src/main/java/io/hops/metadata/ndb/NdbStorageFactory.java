@@ -18,8 +18,9 @@
 package io.hops.metadata.ndb;
 
 import io.hops.DalStorageFactory;
-import io.hops.MultiZoneStorageConnector;
+import io.hops.multizone.MultiZoneStorageConnector;
 import io.hops.StorageConnector;
+import io.hops.exception.StorageException;
 import io.hops.exception.StorageInitializtionException;
 import io.hops.metadata.common.EntityDataAccess;
 import io.hops.metadata.election.dal.HdfsLeDescriptorDataAccess;
@@ -35,6 +36,7 @@ import io.hops.metadata.ndb.dalimpl.yarn.rmstatestore.ApplicationStateClusterJ;
 import io.hops.metadata.ndb.dalimpl.yarn.rmstatestore.DelegationKeyClusterJ;
 import io.hops.metadata.ndb.dalimpl.yarn.rmstatestore.DelegationTokenClusterJ;
 import io.hops.metadata.ndb.multizone.PrimaryConnector;
+import io.hops.metadata.ndb.multizone.SecondaryConnector;
 import io.hops.metadata.yarn.dal.*;
 import io.hops.metadata.yarn.dal.quota.*;
 import io.hops.metadata.yarn.dal.rmstatestore.ApplicationAttemptStateDataAccess;
@@ -57,22 +59,37 @@ public class NdbStorageFactory implements DalStorageFactory {
   }
 
   private Map<Class, DataAccessBuilder> dataAccessMap = new HashMap<>();
-  private PrimaryConnector connector;
+  private MultiZoneStorageConnector connector;
 
   // we need a map with weak key references so that old connectors get GC'ed
   private final ConcurrentMap<StorageConnector, ConcurrentMap<Class, EntityDataAccess>> dataAccessCache =
       new ConcurrentWeakIdentityHashMap<>();
 
   @Override
-  public void setConfiguration(Properties conf)
-      throws StorageInitializtionException {
+  public void setConfiguration(Properties conf) throws StorageInitializtionException {
     try {
-      connector = new PrimaryConnector(conf);
+      connector = configureConnector(conf);
       dataAccessCache.clear();
       initDataAccessMap();
     } catch (IOException ex) {
       throw new StorageInitializtionException(ex);
     }
+  }
+
+  private MultiZoneStorageConnector configureConnector(Properties conf) throws StorageException {
+    boolean multiZone = Boolean.parseBoolean(conf.getProperty("io.hops.metadata.multizone", "false"));
+    if(!multiZone) {
+      return new PrimaryConnector(conf);
+    }
+
+    String zone = conf.getProperty("io.hops.metadata.zone").toLowerCase();
+    switch(zone) {
+      case "primary":
+        return new PrimaryConnector(conf);
+      case "secondary":
+        return new SecondaryConnector(conf);
+    }
+    throw new StorageException("invalid zone value in configuration file: " + zone);
   }
 
   @Override

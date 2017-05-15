@@ -20,10 +20,10 @@ public class ConnectionMonitor implements Runnable {
 
   // how long to sleep for (milliseconds)
   private final long interval = 1000;
-  // exponential backoff for maxExpCounter times and then linear again (with the last sleep from the backoff)
-  private final int maxExpCounter = 8;
-  // number of times we slept in exp backoff
-  private int reconnectionAttempts = 0;
+  // exponential backoff for maxAttemptsExponential times and then linear again (with the last sleep from the backoff)
+  private final int maxAttemptsExponential = 8;
+  // number of tried reconnections
+  private int attempts = 0;
 
   public ConnectionMonitor(final Reconnector target) {
     this.target = target;
@@ -47,14 +47,14 @@ public class ConnectionMonitor implements Runnable {
           // checking whether the target is connected should be cheap
           linearBackoff();
         } else {
-          LOG.debug(String.format("monitored connection is disconnected: will backoff (attempt=%d)", this.reconnectionAttempts));
+          LOG.debug(String.format("monitored connection is disconnected: will backoff (attempt=%d)", this.attempts));
           exponentialBackoff();
           // attempting reconnection may be expensive
           boolean success = attemptReconnect();
           if(success) {
-            LOG.debug(String.format("monitored connection is back up (attempt=%d)", this.reconnectionAttempts));
+            LOG.debug(String.format("monitored connection is back up (attempt=%d)", this.attempts));
             // reset exponential backoff counter
-            reconnectionAttempts = 0;
+            attempts = 0;
           }
         }
       } catch (InterruptedException exc) {
@@ -67,16 +67,21 @@ public class ConnectionMonitor implements Runnable {
     this.sleep(this.interval);
   }
 
+  /**
+   * Sleep for (interval * 2^attempts) until attempts == maxAttemptsExponential.
+   * After just sleep for (interval * 2^maxAttemptsExponential)
+   * @throws InterruptedException
+   */
   private void exponentialBackoff() throws InterruptedException {
     long nextSleep;
-    if(this.reconnectionAttempts < this.maxExpCounter) {
-      // compute the next sleep as interval * (2 ^ reconnectionAttempts)
-      nextSleep = this.interval * (1 << this.reconnectionAttempts);
+    if(this.attempts < this.maxAttemptsExponential) {
+      // compute the next sleep as interval * (2 ^ attempts)
+      nextSleep = this.interval * (1 << this.attempts);
     } else {
-      // linear, just compute interval * (2 ^ maxExpCounter)
-      nextSleep = this.interval * (1 << this.maxExpCounter);
+      // linear, just compute interval * (2 ^ maxAttemptsExponential)
+      nextSleep = this.interval * (1 << this.maxAttemptsExponential);
     }
-    this.reconnectionAttempts++;
+    this.attempts++;
 
     this.sleep(nextSleep);
   }

@@ -69,7 +69,7 @@ public class ClusterjConnector implements StorageConnector {
    * @param session
    * @param mysql
    */
-  public ClusterjConnector(
+  protected ClusterjConnector(
       final String clusterConnectString,
       final String databaseName,
       final HopsSession session,

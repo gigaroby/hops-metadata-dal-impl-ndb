@@ -1,12 +1,10 @@
 package io.hops.metadata.ndb.multizone;
 
-import io.hops.MultiZoneStorageConnector;
+import io.hops.multizone.MultiZoneStorageConnector;
 import io.hops.StorageConnector;
 import io.hops.exception.StorageException;
 import io.hops.metadata.ndb.ClusterjConnectorPool;
 import io.hops.transaction.TransactionCluster;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.util.Properties;
 
@@ -15,7 +13,7 @@ import java.util.Properties;
  * As such it returns only connectors to the primary (local) database, regardless of {@link TransactionCluster}.
  */
 public class PrimaryConnector implements MultiZoneStorageConnector {
-  private static final Log LOG = LogFactory.getLog(PrimaryConnector.class);
+  // private static final Log LOG = LogFactory.getLog(PrimaryConnector.class);
 
   // holds connection to the metadata database cluster
   protected ClusterjConnectorPool local;
@@ -27,10 +25,9 @@ public class PrimaryConnector implements MultiZoneStorageConnector {
    * @throws StorageException
    */
   public PrimaryConnector(final Properties conf) throws StorageException {
-    LOG.debug("initializing clusterj connectors");
-    LOG.debug("loading configuration for local cluster");
     this.local = new ClusterjConnectorPool(ConnectionTo.LOCAL, conf);
     this.monitor = new Thread(new ConnectionMonitor(this.local));
+    this.monitor.setDaemon(true);
     this.monitor.start();
   }
 
